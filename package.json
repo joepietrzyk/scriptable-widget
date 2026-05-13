@@ -1,0 +1,23 @@
+{
+  "name": "scriptable-widget",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "bun build src/widget.ts --outfile dist/widget.js --target browser --format iife --minify",
+    "dev": "bun build src/widget.ts --outfile dist/widget.js --target browser --format iife --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/scriptable-ios": "^1.7.6",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.59.2"
+  }
+}
