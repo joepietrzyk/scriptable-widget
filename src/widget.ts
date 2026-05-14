@@ -109,7 +109,7 @@ async function toast(title: string, message: string): Promise<void> {
   a.title = title;
   a.message = message;
   a.addAction("OK");
-  await a.present();
+  await a.presentAlert();
 }
 
 async function main() {
