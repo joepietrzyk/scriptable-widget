@@ -1,9 +1,14 @@
-// Edit this file to change your weekly workout schedule.
-// workoutType: label shown in the widget header (e.g. "Run", "Strength", "Rest")
-// isOutdoor:   true → show weather + gear advice; false → skip it
+/**
+ * Edit {@link weeklySchedule} below to change your weekly workout plan.
+ * Each day maps to a {@link DaySchedule} that controls the widget header and
+ * whether weather + gear advice are shown.
+ */
 
+/** Configuration for a single day's workout. */
 export interface DaySchedule {
+  /** Label shown in the widget header (e.g. "Run", "Strength", "Rest"). */
   workoutType: string;
+  /** When true, the widget fetches weather and shows gear advice for that day. */
   isOutdoor: boolean;
 }
 
