@@ -10,6 +10,7 @@
     "source=claude-code-config,target=/home/vscode/.claude,type=volume",
     "source=${env:HOME}${env:USERPROFILE}/.config/gh,target=/home/vscode/.config/gh,type=bind"
   ],
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y bubblewrap socat",
   "customizations": {
     "vscode": {
       "extensions": [
