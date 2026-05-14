@@ -1,6 +1,7 @@
 import { weeklySchedule } from "./schedule";
 import { getGearAdvice } from "./gearAdvice";
 import { fetchWeather, celsiusToFahrenheit } from "./weather";
+import { theme } from "./theme";
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -38,32 +39,32 @@ async function main() {
     : null;
 
   const widget = new ListWidget();
-  widget.backgroundColor = new Color("#1a1a2e");
+  widget.backgroundColor = new Color(theme.background);
 
   const header = widget.addText(today.workoutType);
-  header.font = Font.boldSystemFont(14);
-  header.textColor = new Color(today.isOutdoor ? "#7ec8e3" : "#a0a0c0");
+  header.font = Font.boldSystemFont(theme.header.fontSize);
+  header.textColor = new Color(today.isOutdoor ? theme.header.outdoorColor : theme.header.indoorColor);
 
   widget.addSpacer(4);
 
   const tempLine = widget.addText(
     `${temperatureF}°F  feels ${apparentTemperatureF}°F`,
   );
-  tempLine.font = Font.systemFont(11);
-  tempLine.textColor = new Color("#e0e0e");
+  tempLine.font = Font.systemFont(theme.temperature.fontSize);
+  tempLine.textColor = new Color(theme.temperature.color);
 
   if (today.isOutdoor && advice) {
     widget.addSpacer(4);
     for (const layer of advice.layers) {
       const t = widget.addText(`• ${layer}`);
-      t.font = Font.systemFont(10);
-      t.textColor = new Color("#c8e6c9");
+      t.font = Font.systemFont(theme.layers.fontSize);
+      t.textColor = new Color(theme.layers.color);
     }
     if (advice.note) {
       widget.addSpacer(2);
       const noteText = widget.addText(advice.note);
-      noteText.font = Font.italicSystemFont(10);
-      noteText.textColor = new Color("#ffcc80");
+      noteText.font = Font.italicSystemFont(theme.note.fontSize);
+      noteText.textColor = new Color(theme.note.color);
     }
   }
 

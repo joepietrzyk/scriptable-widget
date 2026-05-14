@@ -19,7 +19,7 @@ There are no tests. Validation is via `typecheck` + `lint`.
 
 ## Architecture
 
-This is an iOS [Scriptable](https://scriptable.app) widget. The entire app is four TypeScript source files that Bun bundles into a single `dist/widget.js` (CJS, minified, browser target). That file is loaded by Scriptable directly — there is no server, no runtime environment beyond the Scriptable JS engine, and no npm packages at runtime. All imports in `devDependencies` are type definitions only.
+This is an iOS [Scriptable](https://scriptable.app) widget. The entire app is five TypeScript source files that Bun bundles into a single `dist/widget.js` (CJS, minified, browser target). That file is loaded by Scriptable directly — there is no server, no runtime environment beyond the Scriptable JS engine, and no npm packages at runtime. All imports in `devDependencies` are type definitions only.
 
 **Source files:**
 
@@ -27,6 +27,7 @@ This is an iOS [Scriptable](https://scriptable.app) widget. The entire app is fo
 - `src/weather.ts` — `fetchWeather()` (Open-Meteo API call), the `Weather` interface (temperatures in °C), and `celsiusToFahrenheit()`.
 - `src/schedule.ts` — Static weekly workout schedule. Edit `weeklySchedule` here to change which days are outdoor runs vs. rest. The `isOutdoor` flag controls whether weather and gear advice are fetched/shown.
 - `src/gearAdvice.ts` — Pure function `getGearAdvice(w: WeatherConditions)` that returns clothing layers and an optional note. All temperature thresholds are in °F and tuned for high-intensity running. The apparent temperature input must already be in °F.
+- `src/theme.ts` — Single `theme` constant with all colors and font sizes. Edit here to restyle the widget. Intended to eventually support dark/light mode via `Device.isUsingDarkAppearance()`.
 
 **Data flow:**
 
