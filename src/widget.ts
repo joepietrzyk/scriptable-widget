@@ -94,7 +94,7 @@ function getRunAdvice(w: NoonWeather): RunAdvice {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-await (async () => {
+async function main() {
   const { latitude, longitude } = await Location.current();
 
   // Variables are returned by the API in the same order as requested here.
@@ -191,4 +191,6 @@ await (async () => {
   } else {
     await widget.presentSmall();
   }
-})();
+}
+
+module.exports = { main };

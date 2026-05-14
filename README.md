@@ -80,6 +80,7 @@ async function checkAndUpdate() {
   try {
     const req = new Request(GITHUB_API_URL);
     req.headers = { Accept: "application/vnd.github+json" };
+    req.timeoutInterval = 10;
     const release = await req.loadJSON();
 
     // Skip download if already on this tag
@@ -95,6 +96,7 @@ async function checkAndUpdate() {
       );
 
     const assetReq = new Request(asset.browser_download_url);
+    assetReq.timeoutInterval = 10;
     const code = await assetReq.loadString();
 
     fm.writeString(widgetPath, code);
@@ -107,7 +109,7 @@ async function checkAndUpdate() {
   }
 }
 
-(async () => {
+await (async () => {
   await checkAndUpdate();
 
   if (!fm.fileExists(widgetPath)) {
@@ -116,6 +118,6 @@ async function checkAndUpdate() {
     );
   }
 
-  importModule(CACHED_MODULE_NAME);
+  await importModule(CACHED_MODULE_NAME).main();
 })();
 ```
