@@ -13,11 +13,11 @@ export interface DaySchedule {
 }
 
 export const weeklySchedule: Record<string, DaySchedule> = {
-  sunday:    { workoutType: "Rest",     isOutdoor: false },
-  monday:    { workoutType: "Run",      isOutdoor: true  },
-  tuesday:   { workoutType: "Rest",     isOutdoor: false },
-  wednesday: { workoutType: "Run",      isOutdoor: true  },
-  thursday:  { workoutType: "Rest",     isOutdoor: false },
-  friday:    { workoutType: "Run",      isOutdoor: true  },
-  saturday:  { workoutType: "Run",      isOutdoor: true  },
+  sunday: { workoutType: "Rest", isOutdoor: false },
+  monday: { workoutType: "Run", isOutdoor: true },
+  tuesday: { workoutType: "Rest", isOutdoor: false },
+  wednesday: { workoutType: "Run", isOutdoor: true },
+  thursday: { workoutType: "Cycling", isOutdoor: false },
+  friday: { workoutType: "Run", isOutdoor: true },
+  saturday: { workoutType: "Run", isOutdoor: true },
 };
