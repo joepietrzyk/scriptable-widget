@@ -94,25 +94,54 @@ function getRunAdvice(w: NoonWeather): RunAdvice {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      Timer.schedule(ms, false, () => reject(new Error(`${label} timed out after ${ms}ms`))),
+    ),
+  ]);
+}
+
+async function toast(title: string, message: string): Promise<void> {
+  if (config.runsInWidget) return;
+  const a = new Alert();
+  a.title = title;
+  a.message = message;
+  a.addAction("OK");
+  await a.present();
+}
+
 async function main() {
-  const { latitude, longitude } = await Location.current();
+  await toast("Step 1", "Fetching location…");
+  const { latitude, longitude } = await withTimeout(
+    Location.current(),
+    10_000,
+    "Location.current()",
+  );
+
+  await toast("Step 2", `Got location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}\nFetching weather…`);
 
   // Variables are returned by the API in the same order as requested here.
-  const responses = await fetchWeatherApi(
-    "https://api.open-meteo.com/v1/forecast",
-    {
-      latitude,
-      longitude,
-      hourly: [
-        "temperature_2m",             // index 0
-        "apparent_temperature",        // index 1
-        "precipitation_probability",   // index 2
-        "weathercode",                 // index 3
-        "windspeed_10m",               // index 4
-      ],
-      timezone: "auto",
-      forecast_days: 1,
-    },
+  const responses = await withTimeout(
+    fetchWeatherApi(
+      "https://api.open-meteo.com/v1/forecast",
+      {
+        latitude,
+        longitude,
+        hourly: [
+          "temperature_2m",             // index 0
+          "apparent_temperature",        // index 1
+          "precipitation_probability",   // index 2
+          "weathercode",                 // index 3
+          "windspeed_10m",               // index 4
+        ],
+        timezone: "auto",
+        forecast_days: 1,
+      },
+    ),
+    10_000,
+    "fetchWeatherApi()",
   );
 
   const apiResponse = responses[0];
