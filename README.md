@@ -57,13 +57,14 @@ const GITHUB_API_URL =
   "https://api.github.com/repos/joepietrzyk/scriptable-widget/releases/latest";
 
 const ASSET_NAME = "widget.js";
+const CACHED_MODULE_NAME = "scriptable-widget-cache";
 const KEYCHAIN_LAST_CHECKED = "assistant_widget_last_checked";
 const KEYCHAIN_CACHED_TAG = "assistant_widget_cached_tag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 const fm = FileManager.local();
-const widgetDir = fm.joinPath(fm.documentsDirectory(), "scriptable-widget");
-const widgetPath = fm.joinPath(widgetDir, ASSET_NAME);
+// importModule() looks in the Scriptable documents root, so save there.
+const widgetPath = fm.joinPath(fm.documentsDirectory(), CACHED_MODULE_NAME + ".js");
 
 async function checkAndUpdate() {
   // 30-minute gate
@@ -96,7 +97,6 @@ async function checkAndUpdate() {
     const assetReq = new Request(asset.browser_download_url);
     const code = await assetReq.loadString();
 
-    if (!fm.fileExists(widgetDir)) fm.createDirectory(widgetDir, true);
     fm.writeString(widgetPath, code);
     Keychain.set(KEYCHAIN_CACHED_TAG, release.tag_name);
 
@@ -116,6 +116,6 @@ async function checkAndUpdate() {
     );
   }
 
-  eval(fm.readString(widgetPath));
+  importModule(CACHED_MODULE_NAME);
 })();
 ```
