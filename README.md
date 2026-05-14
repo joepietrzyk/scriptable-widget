@@ -53,15 +53,16 @@ The script below self-updates from the latest GitHub Release using a two-stage c
 ```javascript
 // Scriptable auto-updater
 // Replace the URL below with your repo's GitHub Releases API endpoint
-const GITHUB_API_URL = "https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest";
+const GITHUB_API_URL =
+  "https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest";
 
 const ASSET_NAME = "widget.js";
 const KEYCHAIN_LAST_CHECKED = "scriptable_widget_last_checked";
-const KEYCHAIN_CACHED_TAG   = "scriptable_widget_cached_tag";
+const KEYCHAIN_CACHED_TAG = "scriptable_widget_cached_tag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 const fm = FileManager.local();
-const widgetDir  = fm.joinPath(fm.documentsDirectory(), "scriptable-widget");
+const widgetDir = fm.joinPath(fm.documentsDirectory(), "scriptable-widget");
 const widgetPath = fm.joinPath(widgetDir, ASSET_NAME);
 
 async function checkAndUpdate() {
@@ -77,7 +78,7 @@ async function checkAndUpdate() {
 
   try {
     const req = new Request(GITHUB_API_URL);
-    req.headers = { "Accept": "application/vnd.github+json" };
+    req.headers = { Accept: "application/vnd.github+json" };
     const release = await req.loadJSON();
 
     // Skip download if already on this tag
@@ -86,8 +87,11 @@ async function checkAndUpdate() {
       : null;
     if (cachedTag === release.tag_name) return;
 
-    const asset = release.assets.find(a => a.name === ASSET_NAME);
-    if (!asset) throw new Error(`Asset "${ASSET_NAME}" not found in release ${release.tag_name}`);
+    const asset = release.assets.find((a) => a.name === ASSET_NAME);
+    if (!asset)
+      throw new Error(
+        `Asset "${ASSET_NAME}" not found in release ${release.tag_name}`,
+      );
 
     const assetReq = new Request(asset.browser_download_url);
     const code = await assetReq.loadString();
@@ -106,12 +110,10 @@ async function checkAndUpdate() {
 await checkAndUpdate();
 
 if (!fm.fileExists(widgetPath)) {
-  throw new Error("No cached widget found. Check your GITHUB_API_URL and ensure a release with a widget.js asset exists.");
+  throw new Error(
+    "No cached widget found. Check your GITHUB_API_URL and ensure a release with a widget.js asset exists.",
+  );
 }
 
 eval(fm.readString(widgetPath));
 ```
-
-### Publishing a release
-
-Include `dist/widget.js` as a release asset when you publish a new GitHub Release. The auto-updater looks for an asset named exactly `widget.js`.

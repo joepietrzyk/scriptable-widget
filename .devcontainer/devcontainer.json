@@ -6,13 +6,18 @@
     },
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
-  "mounts": ["source=claude-code-config,target=/home/node/.claude,type=volume"],
+  "mounts": [
+    "source=claude-code-config,target=/home/vscode/.claude,type=volume",
+    "source=${env:HOME}${env:USERPROFILE}/.config/gh,target=/home/vscode/.config/gh,type=volume"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "anthropic.claude-code"
+        "anthropic.claude-code",
+        "github.vscode-github-actions",
+        "oven.bun-vscode"
       ],
       "settings": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",

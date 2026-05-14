@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(~/.config/gh)",
+      "Edit(~/.config/gh)",
+      "Read(/home/vscode/.config/gh)",
+      "Edit(/home/vscode/.config/gh)",
+      "Read(~/.gitconfig)",
+      "Edit(~/.gitconfig)",
+      "Read(**/ .env*)",
+      "Edit(**/ .env*)"
+    ]
+  }
+}
