@@ -109,7 +109,7 @@ async function checkAndUpdate() {
   }
 }
 
-await (async () => {
+(async () => {
   await checkAndUpdate();
 
   if (!fm.fileExists(widgetPath)) {
