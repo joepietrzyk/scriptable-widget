@@ -78,8 +78,8 @@ async function alert(title, message) {
 }
 
 async function checkAndUpdate() {
-  // 30-minute gate
-  if (Keychain.contains(KEYCHAIN_LAST_CHECKED)) {
+  // 30-minute gate — only skip if a cached copy already exists
+  if (fm.fileExists(widgetPath) && Keychain.contains(KEYCHAIN_LAST_CHECKED)) {
     const lastChecked = parseInt(Keychain.get(KEYCHAIN_LAST_CHECKED), 10);
     if (Date.now() - lastChecked < CHECK_INTERVAL_MS) return;
   }
