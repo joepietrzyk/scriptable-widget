@@ -54,11 +54,11 @@ The script below self-updates from the latest GitHub Release using a two-stage c
 // Scriptable auto-updater
 // Replace the URL below with your repo's GitHub Releases API endpoint
 const GITHUB_API_URL =
-  "https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest";
+  "https://api.github.com/repos/joepietrzyk/scriptable-widget/releases/latest";
 
 const ASSET_NAME = "widget.js";
-const KEYCHAIN_LAST_CHECKED = "scriptable_widget_last_checked";
-const KEYCHAIN_CACHED_TAG = "scriptable_widget_cached_tag";
+const KEYCHAIN_LAST_CHECKED = "assistant_widget_last_checked";
+const KEYCHAIN_CACHED_TAG = "assistant_widget_cached_tag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 const fm = FileManager.local();
