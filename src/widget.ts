@@ -30,7 +30,8 @@ async function main() {
   const apparentTemperatureF = Math.round(
     celsiusToFahrenheit(weather.apparentTemperature),
   );
-  const advice = today.isOutdoor
+  const isOutDoorWorkout = today.isOutdoor && hour < 13;
+  const advice = isOutDoorWorkout
     ? getGearAdvice({
         apparentTemperature: apparentTemperatureF,
         precipitationProbability: weather.precipitationProbability,
@@ -43,12 +44,14 @@ async function main() {
 
   const header = widget.addText(today.workoutType);
   header.font = Font.boldSystemFont(theme.header.fontSize);
-  header.textColor = new Color(today.isOutdoor ? theme.header.outdoorColor : theme.header.indoorColor);
+  header.textColor = new Color(
+    today.isOutdoor ? theme.header.outdoorColor : theme.header.indoorColor,
+  );
 
   widget.addSpacer(4);
 
   const tempLine = widget.addText(
-    `${temperatureF}°F  feels ${apparentTemperatureF}°F`,
+    `${temperatureF}°F  feels ${apparentTemperatureF}°F${isOutDoorWorkout ? " for your workout" : ""}`,
   );
   tempLine.font = Font.systemFont(theme.temperature.fontSize);
   tempLine.textColor = new Color(theme.temperature.color);
