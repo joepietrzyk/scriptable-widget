@@ -96,7 +96,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
-      Timer.schedule(ms, false, () => reject(new Error(`${label} timed out after ${ms}ms`))),
+      Timer.schedule(ms / 1000, false, () => reject(new Error(`${label} timed out after ${ms}ms`))),
     ),
   ]);
 }
@@ -104,6 +104,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function main() {
+  Location.setAccuracyToKilometer();
   const { latitude, longitude } = await withTimeout(
     Location.current(),
     10_000,
