@@ -1,8 +1,3 @@
-import "./polyfills";
-import { fetchWeatherApi } from "openmeteo";
-import type { VariablesWithTime } from "@openmeteo/sdk/variables-with-time";
-import type { VariableWithValues } from "@openmeteo/sdk/variable-with-values";
-
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface NoonWeather {
@@ -20,21 +15,62 @@ interface RunAdvice {
   note?: string;
 }
 
+interface OpenMeteoHourly {
+  time: string[];
+  temperature_2m: number[];
+  apparent_temperature: number[];
+  precipitation_probability: number[];
+  weathercode: number[];
+  windspeed_10m: number[];
+}
+
+interface OpenMeteoResponse {
+  timezone: string;
+  utc_offset_seconds: number;
+  hourly: OpenMeteoHourly;
+}
+
+// ── Weather fetch ─────────────────────────────────────────────────────────────
+
+async function fetchNoonWeather(
+  latitude: number,
+  longitude: number,
+): Promise<NoonWeather> {
+  const url =
+    `https://api.open-meteo.com/v1/forecast` +
+    `?latitude=${latitude}` +
+    `&longitude=${longitude}` +
+    `&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,windspeed_10m` +
+    `&timezone=auto` +
+    `&forecast_days=1`;
+
+  const req = new Request(url);
+  req.timeoutInterval = 10;
+  const data = (await req.loadJSON()) as OpenMeteoResponse;
+
+  // API returns local times as "YYYY-MM-DDTHH:MM" when timezone=auto
+  const today = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const noonStr =
+    `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}T12:00`;
+
+  const noonIdx = data.hourly.time.indexOf(noonStr);
+  if (noonIdx === -1) {
+    throw new Error(`Noon (${noonStr}) not found in forecast times`);
+  }
+
+  return {
+    temperature: data.hourly.temperature_2m[noonIdx]!,
+    apparentTemperature: data.hourly.apparent_temperature[noonIdx]!,
+    precipitationProbability: data.hourly.precipitation_probability[noonIdx]!,
+    weatherCode: data.hourly.weathercode[noonIdx]!,
+    windspeed: data.hourly.windspeed_10m[noonIdx]!,
+    timezone: data.timezone,
+    utcOffsetSeconds: data.utc_offset_seconds,
+  };
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function getVar(hourly: VariablesWithTime, index: number): VariableWithValues {
-  const v = hourly.variables(index);
-  if (!v) throw new Error(`No variable at index ${index}`);
-  return v;
-}
-
-function readValue(v: VariableWithValues, timeIdx: number): number {
-  const arr = v.valuesArray();
-  if (!arr) throw new Error("Variable has no values array");
-  const val = arr[timeIdx];
-  if (val === undefined) throw new Error(`No value at time index ${timeIdx}`);
-  return val;
-}
 
 function isRunDay(): boolean {
   // Mon=1, Wed=3, Fri=5, Sat=6
@@ -78,7 +114,6 @@ function getRunAdvice(w: NoonWeather): RunAdvice {
     note = "Extreme heat — hydrate!";
   }
 
-  // Wind chill on cooler days warrants a shell
   if (wind >= 30 && apparent < 15) {
     layers.unshift("Wind-resistant shell");
   }
@@ -92,82 +127,15 @@ function getRunAdvice(w: NoonWeather): RunAdvice {
   return note !== undefined ? { layers, note } : { layers };
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      Timer.schedule(ms / 1000, false, () => reject(new Error(`${label} timed out after ${ms}ms`))),
-    ),
-  ]);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
   Location.setAccuracyToKilometer();
-  const { latitude, longitude } = await withTimeout(
-    Location.current(),
-    10_000,
-    "Location.current()",
-  );
+  const { latitude, longitude } = await Location.current();
 
-  const responses = await withTimeout(
-    fetchWeatherApi(
-      "https://api.open-meteo.com/v1/forecast",
-      {
-        latitude,
-        longitude,
-        hourly: [
-          "temperature_2m",             // index 0
-          "apparent_temperature",        // index 1
-          "precipitation_probability",   // index 2
-          "weathercode",                 // index 3
-          "windspeed_10m",               // index 4
-        ],
-        timezone: "auto",
-        forecast_days: 1,
-      },
-    ),
-    10_000,
-    "fetchWeatherApi()",
-  );
-
-  const apiResponse = responses[0];
-  if (!apiResponse) throw new Error("No response from weather API");
-
-  const hourly = apiResponse.hourly();
-  if (!hourly) throw new Error("No hourly data in weather response");
-
-  // hourly.time() is UTC Unix seconds (bigint) for the start of the time series.
-  // today.setHours(12) sets noon in the device's local timezone; getTime() is UTC ms.
-  // With timezone=auto, the API aligns the time series to local midnight, so the
-  // UTC timestamps for both are comparable directly.
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
-  const noonUtcSecs = BigInt(Math.floor(today.getTime() / 1000));
-  const startSecs = hourly.time();
-  const intervalSecs = BigInt(hourly.interval());
-  const noonIdx = Number((noonUtcSecs - startSecs) / intervalSecs);
-
-  const timeSteps = Number((hourly.timeEnd() - startSecs) / intervalSecs);
-  if (noonIdx < 0 || noonIdx >= timeSteps) {
-    throw new Error(
-      `Noon index ${noonIdx} is outside the ${timeSteps}-step forecast`,
-    );
-  }
-
-  const noonWeather: NoonWeather = {
-    temperature: readValue(getVar(hourly, 0), noonIdx),
-    apparentTemperature: readValue(getVar(hourly, 1), noonIdx),
-    precipitationProbability: readValue(getVar(hourly, 2), noonIdx),
-    weatherCode: readValue(getVar(hourly, 3), noonIdx),
-    windspeed: readValue(getVar(hourly, 4), noonIdx),
-    timezone: apiResponse.timezone() ?? "",
-    utcOffsetSeconds: apiResponse.utcOffsetSeconds(),
-  };
-
+  const weather = await fetchNoonWeather(latitude, longitude);
   const runDay = isRunDay();
-  const advice = getRunAdvice(noonWeather);
+  const advice = getRunAdvice(weather);
 
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#1a1a2e");
@@ -179,7 +147,7 @@ async function main() {
   widget.addSpacer(4);
 
   const tempLine = widget.addText(
-    `${Math.round(noonWeather.temperature)}°C  feels ${Math.round(noonWeather.apparentTemperature)}°C`,
+    `${Math.round(weather.temperature)}°C  feels ${Math.round(weather.apparentTemperature)}°C`,
   );
   tempLine.font = Font.systemFont(11);
   tempLine.textColor = new Color("#e0e0e0");
@@ -200,7 +168,6 @@ async function main() {
   }
 
   widget.addSpacer();
-
   Script.setWidget(widget);
 
   if (config.runsInWidget) {
