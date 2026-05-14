@@ -15,6 +15,11 @@ interface NoonWeather {
   utcOffsetSeconds: number;
 }
 
+interface RunAdvice {
+  layers: string[];
+  note?: string;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getVar(hourly: VariablesWithTime, index: number): VariableWithValues {
@@ -31,6 +36,62 @@ function readValue(v: VariableWithValues, timeIdx: number): number {
   return val;
 }
 
+function isRunDay(): boolean {
+  // Mon=1, Wed=3, Fri=5, Sat=6
+  const day = new Date().getDay();
+  return day === 1 || day === 3 || day === 5 || day === 6;
+}
+
+// Thresholds are for high-intensity running; body generates ~8–10°C of extra heat.
+function getRunAdvice(w: NoonWeather): RunAdvice {
+  const apparent = w.apparentTemperature;
+  const rain = w.precipitationProbability;
+  const wind = w.windspeed;
+
+  const layers: string[] = [];
+  let note: string | undefined;
+
+  if (apparent < -10) {
+    layers.push("Thermal base + insulated jacket");
+    layers.push("Thermal tights");
+    layers.push("Gloves + balaclava");
+  } else if (apparent < 0) {
+    layers.push("Base layer + fleece jacket");
+    layers.push("Running tights");
+    layers.push("Gloves + light hat");
+  } else if (apparent < 5) {
+    layers.push("Long sleeve + light jacket");
+    layers.push("Tights + gloves");
+  } else if (apparent < 10) {
+    layers.push("Long sleeve shirt");
+    layers.push("Light jacket + tights");
+  } else if (apparent < 15) {
+    layers.push("Long sleeve shirt");
+    layers.push("Shorts or tights");
+  } else if (apparent < 20) {
+    layers.push("Short sleeve shirt");
+    layers.push("Shorts");
+  } else if (apparent < 27) {
+    layers.push("Light t-shirt + shorts");
+  } else {
+    layers.push("Singlet + shorts");
+    note = "Extreme heat — hydrate!";
+  }
+
+  // Wind chill on cooler days warrants a shell
+  if (wind >= 30 && apparent < 15) {
+    layers.unshift("Wind-resistant shell");
+  }
+
+  if (rain >= 50) {
+    layers.push("Rain jacket");
+  } else if (rain >= 30) {
+    note = note ?? `${Math.round(rain)}% rain chance`;
+  }
+
+  return note !== undefined ? { layers, note } : { layers };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 await (async () => {
@@ -43,11 +104,11 @@ await (async () => {
       latitude,
       longitude,
       hourly: [
-        "temperature_2m",        // index 0
-        "apparent_temperature",  // index 1
-        "precipitation_probability", // index 2
-        "weathercode",           // index 3
-        "windspeed_10m",         // index 4
+        "temperature_2m",             // index 0
+        "apparent_temperature",        // index 1
+        "precipitation_probability",   // index 2
+        "weathercode",                 // index 3
+        "windspeed_10m",               // index 4
       ],
       timezone: "auto",
       forecast_days: 1,
@@ -88,20 +149,40 @@ await (async () => {
     utcOffsetSeconds: apiResponse.utcOffsetSeconds(),
   };
 
-  void noonWeather; // reserved for display use
+  const runDay = isRunDay();
+  const advice = getRunAdvice(noonWeather);
 
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#1a1a2e");
 
-  const title = widget.addText("Hello, Scriptable!");
-  title.font = Font.boldSystemFont(16);
-  title.textColor = new Color("#e0e0e0");
+  const header = widget.addText(runDay ? "Noon Run" : "Rest Day");
+  header.font = Font.boldSystemFont(14);
+  header.textColor = new Color(runDay ? "#7ec8e3" : "#a0a0c0");
+
+  widget.addSpacer(4);
+
+  const tempLine = widget.addText(
+    `${Math.round(noonWeather.temperature)}°C  feels ${Math.round(noonWeather.apparentTemperature)}°C`,
+  );
+  tempLine.font = Font.systemFont(11);
+  tempLine.textColor = new Color("#e0e0e0");
+
+  if (runDay) {
+    widget.addSpacer(4);
+    for (const layer of advice.layers) {
+      const t = widget.addText(`• ${layer}`);
+      t.font = Font.systemFont(10);
+      t.textColor = new Color("#c8e6c9");
+    }
+    if (advice.note) {
+      widget.addSpacer(2);
+      const noteText = widget.addText(advice.note);
+      noteText.font = Font.italicSystemFont(10);
+      noteText.textColor = new Color("#ffcc80");
+    }
+  }
 
   widget.addSpacer();
-
-  const subtitle = widget.addText("Built with TypeScript + Bun");
-  subtitle.font = Font.systemFont(12);
-  subtitle.textColor = new Color("#a0a0c0");
 
   Script.setWidget(widget);
 
