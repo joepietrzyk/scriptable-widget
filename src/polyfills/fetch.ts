@@ -21,6 +21,7 @@ type MinimalFetch = (
   url: string,
 ): Promise<MinimalFetchResponse> => {
   const req = new Request(url); // Scriptable's Request class
+  req.timeoutInterval = 10;
   const data = await req.load();
   const resp = req.response as unknown as ScriptableHttpResponse;
   const status = resp.statusCode ?? 200;
