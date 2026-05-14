@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "bun build src/widget.ts --outfile dist/widget.js --target browser --format iife --minify",
-    "dev": "bun build src/widget.ts --outfile dist/widget.js --target browser --format iife --watch",
+    "build": "bun build src/widget.ts --outfile dist/widget.js --target browser --format cjs --minify",
+    "dev": "bun build src/widget.ts --outfile dist/widget.js --target browser --format cjs --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
