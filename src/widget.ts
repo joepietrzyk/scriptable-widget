@@ -189,6 +189,16 @@ async function main() {
   if (config.runsInWidget) {
     Script.complete();
   } else {
+    const alert = new Alert();
+    alert.title = runDay ? "Noon Run" : "Rest Day";
+    let body = `${Math.round(noonWeather.temperature)}°C  feels ${Math.round(noonWeather.apparentTemperature)}°C`;
+    if (runDay) {
+      body += "\n\n" + advice.layers.map(l => `• ${l}`).join("\n");
+      if (advice.note) body += `\n\n${advice.note}`;
+    }
+    alert.message = body;
+    alert.addAction("OK");
+    await alert.present();
     await widget.presentSmall();
   }
 }
