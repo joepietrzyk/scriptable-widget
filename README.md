@@ -63,8 +63,19 @@ const KEYCHAIN_CACHED_TAG = "assistant_widget_cached_tag";
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 const fm = FileManager.local();
-// importModule() looks in the Scriptable documents root, so save there.
-const widgetPath = fm.joinPath(fm.documentsDirectory(), CACHED_MODULE_NAME + ".js");
+const cacheDir = fm.joinPath(fm.libraryDirectory(), CACHED_MODULE_NAME);
+if (fm.fileExists(cacheDir) && !fm.isDirectory(cacheDir)) fm.remove(cacheDir);
+if (!fm.fileExists(cacheDir)) fm.createDirectory(cacheDir);
+const widgetPath = fm.joinPath(cacheDir, CACHED_MODULE_NAME + ".js");
+
+async function alert(title, message) {
+  if (config.runsInWidget) return;
+  const a = new Alert();
+  a.title = title;
+  a.message = message;
+  a.addAction("OK");
+  await a.presentAlert();
+}
 
 async function checkAndUpdate() {
   // 30-minute gate
@@ -103,9 +114,11 @@ async function checkAndUpdate() {
     Keychain.set(KEYCHAIN_CACHED_TAG, release.tag_name);
 
     console.log(`Updated to ${release.tag_name}`);
+    await alert("Widget Updated", `Downloaded version ${release.tag_name}.`);
   } catch (e) {
     // Network or API failure — fall through to cached version below
     console.error(`Update check failed: ${e.message}`);
+    await alert("Widget Update Failed", e.message);
   }
 }
 
@@ -113,11 +126,12 @@ async function checkAndUpdate() {
   await checkAndUpdate();
 
   if (!fm.fileExists(widgetPath)) {
-    throw new Error(
-      "No cached widget found. Check your GITHUB_API_URL and ensure a release with a widget.js asset exists.",
-    );
+    const msg =
+      "No cached widget found. Check your GITHUB_API_URL and ensure a release with a widget.js asset exists.";
+    await alert("Widget Not Found", msg);
+    throw new Error(msg);
   }
 
-  await importModule(CACHED_MODULE_NAME).main();
+  await importModule(widgetPath).main();
 })();
 ```
