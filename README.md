@@ -1,6 +1,6 @@
 # Scriptable Widget
 
-An iOS [Scriptable](https://scriptable.app) widget built with TypeScript, bundled with Bun.
+An iOS [Scriptable](https://scriptable.app) widget built with TypeScript, bundled with Bun. This project is mostly an experiment for me to try to use Claude Code with hardened security, play around with Scriptable, and learn Bun tooling at the same time.
 
 ## Prerequisites
 
