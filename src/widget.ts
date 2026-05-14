@@ -1,3 +1,6 @@
+import { weeklySchedule } from "./schedule";
+import { getGearAdvice } from "./gearAdvice";
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface NoonWeather {
@@ -10,10 +13,6 @@ interface NoonWeather {
   utcOffsetSeconds: number;
 }
 
-interface RunAdvice {
-  layers: string[];
-  note?: string;
-}
 
 interface OpenMeteoHourly {
   time: string[];
@@ -70,89 +69,38 @@ async function fetchNoonWeather(
   };
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function isRunDay(): boolean {
-  // Mon=1, Wed=3, Fri=5, Sat=6
-  const day = new Date().getDay();
-  return day === 1 || day === 3 || day === 5 || day === 6;
-}
-
-// Thresholds are for high-intensity running; body generates ~8–10°C of extra heat.
-function getRunAdvice(w: NoonWeather): RunAdvice {
-  const apparent = w.apparentTemperature;
-  const rain = w.precipitationProbability;
-  const wind = w.windspeed;
-
-  const layers: string[] = [];
-  let note: string | undefined;
-
-  if (apparent < -10) {
-    layers.push("Thermal base + insulated jacket");
-    layers.push("Thermal tights");
-    layers.push("Gloves + balaclava");
-  } else if (apparent < 0) {
-    layers.push("Base layer + fleece jacket");
-    layers.push("Running tights");
-    layers.push("Gloves + light hat");
-  } else if (apparent < 5) {
-    layers.push("Long sleeve + light jacket");
-    layers.push("Tights + gloves");
-  } else if (apparent < 10) {
-    layers.push("Long sleeve shirt");
-    layers.push("Light jacket + tights");
-  } else if (apparent < 15) {
-    layers.push("Long sleeve shirt");
-    layers.push("Shorts or tights");
-  } else if (apparent < 20) {
-    layers.push("Short sleeve shirt");
-    layers.push("Shorts");
-  } else if (apparent < 27) {
-    layers.push("Light t-shirt + shorts");
-  } else {
-    layers.push("Singlet + shorts");
-    note = "Extreme heat — hydrate!";
-  }
-
-  if (wind >= 30 && apparent < 15) {
-    layers.unshift("Wind-resistant shell");
-  }
-
-  if (rain >= 50) {
-    layers.push("Rain jacket");
-  } else if (rain >= 30) {
-    note = note ?? `${Math.round(rain)}% rain chance`;
-  }
-
-  return note !== undefined ? { layers, note } : { layers };
-}
-
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  Location.setAccuracyToKilometer();
-  const { latitude, longitude } = await Location.current();
+  const dayName = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][new Date().getDay()]!;
+  const today = weeklySchedule[dayName]!;
 
-  const weather = await fetchNoonWeather(latitude, longitude);
-  const runDay = isRunDay();
-  const advice = getRunAdvice(weather);
+  let weather = null;
+  if (today.isOutdoor) {
+    Location.setAccuracyToKilometer();
+    const { latitude, longitude } = await Location.current();
+    weather = await fetchNoonWeather(latitude, longitude);
+  }
+  const advice = weather ? getGearAdvice(weather) : null;
 
   const widget = new ListWidget();
   widget.backgroundColor = new Color("#1a1a2e");
 
-  const header = widget.addText(runDay ? "Noon Run" : "Rest Day");
+  const header = widget.addText(today.workoutType);
   header.font = Font.boldSystemFont(14);
-  header.textColor = new Color(runDay ? "#7ec8e3" : "#a0a0c0");
+  header.textColor = new Color(today.isOutdoor ? "#7ec8e3" : "#a0a0c0");
 
   widget.addSpacer(4);
 
-  const tempLine = widget.addText(
-    `${Math.round(weather.temperature)}°C  feels ${Math.round(weather.apparentTemperature)}°C`,
-  );
-  tempLine.font = Font.systemFont(11);
-  tempLine.textColor = new Color("#e0e0e0");
+  if (weather) {
+    const tempLine = widget.addText(
+      `${Math.round(weather.temperature)}°C  feels ${Math.round(weather.apparentTemperature)}°C`,
+    );
+    tempLine.font = Font.systemFont(11);
+    tempLine.textColor = new Color("#e0e0e0");
+  }
 
-  if (runDay) {
+  if (today.isOutdoor && advice) {
     widget.addSpacer(4);
     for (const layer of advice.layers) {
       const t = widget.addText(`• ${layer}`);
