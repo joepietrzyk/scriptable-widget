@@ -10,5 +10,11 @@
       "Read(**/ .env*)",
       "Edit(**/ .env*)"
     ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "failIfUnavailable": true
   }
 }
