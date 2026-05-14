@@ -107,13 +107,15 @@ async function checkAndUpdate() {
   }
 }
 
-await checkAndUpdate();
+(async () => {
+  await checkAndUpdate();
 
-if (!fm.fileExists(widgetPath)) {
-  throw new Error(
-    "No cached widget found. Check your GITHUB_API_URL and ensure a release with a widget.js asset exists.",
-  );
-}
+  if (!fm.fileExists(widgetPath)) {
+    throw new Error(
+      "No cached widget found. Check your GITHUB_API_URL and ensure a release with a widget.js asset exists.",
+    );
+  }
 
-eval(fm.readString(widgetPath));
+  eval(fm.readString(widgetPath));
+})();
 ```
