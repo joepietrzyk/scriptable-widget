@@ -1,20 +1,28 @@
 export const theme = {
-  background: "#1a1a2e",
+  background: "#0d1025",
+  gradient: {
+    top: "#0d1025",
+    bottom: "#1e2850",
+  },
+  date: {
+    color: "#8896c8",
+    fontSize: 10,
+  },
   header: {
-    outdoorColor: "#7ec8e3",
-    indoorColor: "#a0a0c0",
+    outdoorColor: "#5dd4f0",
+    indoorColor: "#b8c4e8",
     fontSize: 14,
   },
   temperature: {
-    color: "#e0e0ee",
+    color: "#f5f5ff",
     fontSize: 11,
   },
   layers: {
-    color: "#c8e6c9",
+    color: "#9fe3a0",
     fontSize: 10,
   },
   note: {
-    color: "#ffcc80",
+    color: "#ffd060",
     fontSize: 10,
   },
 } as const;
