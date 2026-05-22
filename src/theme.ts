@@ -1,8 +1,10 @@
 export const theme = {
   background: "#0d1025",
   gradient: {
-    top: "#0d1025",
-    bottom: "#1e2850",
+    top: "#ffffff",
+    topAlpha: 0.28,
+    bottom: "#b0c8ff",
+    bottomAlpha: 0.10,
   },
   date: {
     color: "#8896c8",

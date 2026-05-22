@@ -78,8 +78,8 @@ async function main() {
   const widget = new ListWidget();
   const gradient = new LinearGradient();
   gradient.colors = [
-    new Color(theme.gradient.top),
-    new Color(theme.gradient.bottom),
+    new Color(theme.gradient.top, theme.gradient.topAlpha),
+    new Color(theme.gradient.bottom, theme.gradient.bottomAlpha),
   ];
   gradient.locations = [0, 1];
   widget.backgroundGradient = gradient;
